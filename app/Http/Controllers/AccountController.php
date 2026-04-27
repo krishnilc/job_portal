@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AccountController extends Controller
 {
@@ -13,19 +14,42 @@ class AccountController extends Controller
         return view('front.account.registration');
     }
 
-    //This method will handle user registration form submission
-    public function registrationSubmit(Request $request)
+    //This method will save user registration data to database
+    public function processRegistration(Request $request)
     {
-        // dd($request->all());
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'confirm_password' => 'required|same:password'
+            'password' => 'required|min:5|same:confirm_password',
+            'confirm_password' => 'required|same:password',
         ]);
-       
-        return redirect()->route('account.registration')->with('success', 'Registration successful!');
+
+        if($validator->passes()) {
+            return response()->json([
+                'status' => true,
+                'errors' => ["Registration successful! You can now login to your account."]     
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ]);
+        }
     }
+
+    // //This method will handle user registration form submission
+    // public function registrationSubmit(Request $request)
+    // {
+    //     // dd($request->all());
+    //     $request->validate([
+    //         'name' => 'required',
+    //         'email' => 'required|email|unique:users,email',
+    //         'password' => 'required|min:6',
+    //         'confirm_password' => 'required|same:password'
+    //     ]);
+       
+    //     return redirect()->route('account.registration')->with('success', 'Registration successful!');
+    // }
 
     //This method will show user login form
     public function login()
