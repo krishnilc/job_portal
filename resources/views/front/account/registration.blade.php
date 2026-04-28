@@ -13,28 +13,28 @@
                             <div class="mb-3">
                                 <label for="" class="mb-2">Name*</label>
                                 <input type="text" name="name" id="name" class="form-control"
-                                    placeholder="Enter Name">
+                                    placeholder="Enter Name" required>
                               <p class="text-danger" id="nameError"></p>
                             </div>
 
                             <div class="mb-3">
                                 <label for="" class="mb-2">Email*</label>
                                 <input type="text" name="email" id="email" class="form-control"
-                                    placeholder="Enter Email">
+                                    placeholder="Enter Email" required>
                                 <p class="text-danger" id="emailError"></p>
                             </div>
 
                             <div class="mb-3">
                                 <label for="" class="mb-2">Password*</label>
                                 <input type="password" name="password" id="password" class="form-control"
-                                    placeholder="Enter Password">
+                                    placeholder="Enter Password" required>
                                 <p class="text-danger" id="passwordError"></p>
                             </div>
 
                             <div class="mb-3">
                                 <label for="" class="mb-2">Confirm Password*</label>
                                 <input type="password" name="confirm_password" id="confirm_password" class="form-control"
-                                    placeholder="Please confirm Password">
+                                    placeholder="Please confirm Password" required>
                                 <p class="text-danger" id="confirmPasswordError"></p>
                             </div>
 
@@ -62,32 +62,28 @@
                 dataType: "json",
 
                 success: function(response) {
+                    // Always clear all error messages first
+                    $("#nameError").text('');
+                    $("#emailError").text('');
+                    $("#passwordError").text('');
+                    $("#confirmPasswordError").text('');
+
                     if (response.status == false) {
                         var errors = response.errors;
-
                         if (errors.name) {
                             $("#nameError").text(errors.name[0]);
-                        } else {
-                            $("#nameError").text('');
                         }
                         if (errors.email) {
                             $("#emailError").text(errors.email[0]);
-                        } else {
-                            $("#emailError").text('');
                         }
                         if (errors.password) {
                             $("#passwordError").text(errors.password[0]);
-                        } else {
-                            $("#passwordError").text('');
                         }
                         if (errors.confirm_password) {
                             $("#confirmPasswordError").text(errors.confirm_password[0]);
-                        } else {
-                            $("#confirmPasswordError").text('');
-                        }                        
-                  
+                        }
                     } else {
-                        alert('Registration successful!');
+                        window.location.href = "{{ route('account.login') }}";
                         $("#registrationForm")[0].reset();
                     }
                 }

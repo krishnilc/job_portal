@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class AccountController extends Controller
@@ -24,10 +26,19 @@ class AccountController extends Controller
             'confirm_password' => 'required|same:password',
         ]);
 
-        if($validator->passes()) {
+        if ($validator->passes()) {
+            $user = new User();
+
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password); // Hash the password before saving
+            $user->save();
+
+            session()->flash('success', 'Registration successful! ');
+
             return response()->json([
                 'status' => true,
-                'errors' => ["Registration successful! You can now login to your account."]     
+                'errors' => []
             ]);
         } else {
             return response()->json([
@@ -47,7 +58,7 @@ class AccountController extends Controller
     //         'password' => 'required|min:6',
     //         'confirm_password' => 'required|same:password'
     //     ]);
-       
+
     //     return redirect()->route('account.registration')->with('success', 'Registration successful!');
     // }
 
