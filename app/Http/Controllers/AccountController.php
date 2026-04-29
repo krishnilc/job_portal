@@ -55,6 +55,7 @@ class AccountController extends Controller
         return view('front.account.login');
     }
 
+    //This method will authenticate user login credentials
     public function authenticate(Request $request)
     {
         // Authentication logic will go here
