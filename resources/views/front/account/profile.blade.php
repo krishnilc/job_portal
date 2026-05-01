@@ -18,29 +18,42 @@
                     @include('front.account.sidebar')
                 </div>
                 <div class="col-lg-9">
+                    @include('front.message')
                     <div class="card border-0 shadow mb-4">
-                        <div class="card-body  p-4">
-                            <h3 class="fs-4 mb-1">My Profile</h3>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Name*</label>
-                                <input type="text" placeholder="Enter Name" class="form-control" value="">
+                        <form action="" method="POST" id="userForm" name="userForm">
+                            @csrf
+                            <div class="card-body  p-4">
+                                <h3 class="fs-4 mb-1">My Profile</h3>
+                                <div class="mb-4">
+                                    <label for="name" class="mb-2">Name*</label>
+                                    <input type="text" name="name" id="name" class="form-control"
+                                        value="{{ $user->name }}">
+                                    <p class="text-danger" id="nameError"></p>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="email" class="mb-2">Email*</label>
+                                    <input type="text" name="email" id="email" class="form-control"
+                                        value="{{ $user->email }}">
+                                    <p class="text-danger" id="emailError"></p>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="mobile" class="mb-2">Mobile*</label>
+                                    <input type="text" name="mobile" id="mobile" class="form-control"
+                                        value="{{ $user->mobile }}">
+                                    <p class="text-danger" id="mobileError"></p>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="designation" class="mb-2">Designation*</label>
+                                    <input type="text" name="designation" id="designation" class="form-control"
+                                        value="{{ $user->designation }}">
+                                    <p class="text-danger" id="designationError"></p>
+                                </div>
+
                             </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Email*</label>
-                                <input type="text" placeholder="Enter Email" class="form-control">
+                            <div class="card-footer  p-4">
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Designation*</label>
-                                <input type="text" placeholder="Designation" class="form-control">
-                            </div>
-                            <div class="mb-4">
-                                <label for="" class="mb-2">Mobile*</label>
-                                <input type="text" placeholder="Mobile" class="form-control">
-                            </div>
-                        </div>
-                        <div class="card-footer  p-4">
-                            <button type="button" class="btn btn-primary">Update</button>
-                        </div>
+                        </form>
                     </div>
 
                     <div class="card border-0 shadow mb-4">
@@ -67,4 +80,50 @@
             </div>
         </div>
     </section>
+@endsection
+
+@section('customJS')
+    <script>
+        $('#userForm').submit(function(e) {
+            e.preventDefault();
+            // var formData = $(this).serialize();
+            $.ajax({
+                url: "{{ route('account.updateProfile') }}",
+                type: "PUT",
+                dataType: "json",
+                data: $("#userForm").serializeArray(),
+                
+                success: function(response) {
+                    // Always clear all error messages first
+                    $("#nameError").text('');
+                    $("#emailError").text('');
+                    $("#passwordError").text('');
+                    $("#confirmPasswordError").text('');
+                    $("#mobileError").text('');
+
+                      if (response.status == true) {
+                       window.location.href = "{{ route('account.profile') }}";
+                    } else {
+                        var errors = response.errors;
+
+                        if (errors.name) {
+                            $("#nameError").text(errors.name[0]);
+                        }
+                        if (errors.email) {
+                            $("#emailError").text(errors.email[0]);
+                        }
+                        if (errors.designation) {
+                            $("#designationError").text(errors.designation[0]);
+                        }
+                        if (errors.mobile) {
+                            $("#mobileError").text(errors.mobile[0]);
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('An error occurred: ' + error);
+                }
+            });
+        });
+    </script>
 @endsection
