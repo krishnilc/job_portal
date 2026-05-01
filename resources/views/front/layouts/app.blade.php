@@ -118,7 +118,7 @@
                     } else {
                         // Success - hide modal and reload to show new image
                         $('#exampleModal').modal('hide');
-                        location.reload();
+                        location.reload(); // Reload page to show updated profile picture
                     } 
                 },
 

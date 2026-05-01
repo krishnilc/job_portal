@@ -8,6 +8,9 @@ use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\File;
 
 class AccountController extends Controller
 {
@@ -130,7 +133,7 @@ class AccountController extends Controller
             ]);
         }
     }
-        public function logout()
+    public function logout()
     {
         Auth::logout();
         return redirect()->route('account.login');
@@ -138,7 +141,6 @@ class AccountController extends Controller
 
     public function updateProfilePic(Request $request)
     {
-        
         $id = Auth::user()->id;
 
         $validator = Validator::make($request->all(), [
@@ -146,38 +148,46 @@ class AccountController extends Controller
         ]);
 
         if ($validator->passes()) {
-            $user = User::find($id);
+            $image = $request->file('profile_pic'); // Get the uploaded file
+            $extension = $image->getClientOriginalExtension(); // Get the file extension
+            $imageName = $id . '_' . time() . '.' . $extension; // Create a unique filename using the current timestamp
+            $image->move(public_path('/profile_pic'), $imageName); // Move the file to the public/profile_pic directory
 
-            // Handle file upload
-            if ($request->hasFile('profile_pic')) {
-                $file = $request->file('profile_pic');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $filePath = public_path('profile_pic/');
-                $file->move($filePath, $filename);
+            /// Image processing using Intervention Image library - cropping and resizing the uploaded image
+            $sourcePath = public_path('/profile_pic/' . $imageName); // Get the path of the uploaded image
+            $manager = new ImageManager(Driver::class); // Create an instance of the Intervention Image Manager using the GD driver
+            $image = $manager->read($sourcePath); // Read the uploaded image
+            
 
-                // Update user's profile picture path in the database
-                $user->profile_pic = 'profile_pic/' . $filename;
-                $user->save();
+            // crop the best fitting 5:3 (600x360) ratio and resize to 600x360 pixel
+            $image->cover(150, 150); // Crop the image to a 5:3 ratio (600x360) while maintaining the center of the image
+            $image->toPng()->save(public_path('/profile_pic/thumb/' . $imageName)); // Save the cropped image as a PNG file in the public/profile_pic directory with a "thumb" prefix
 
-                session()->flash('success', 'Profile picture updated successfully!');
+            //Delete old profile picture if exists
+            File::delete(public_path('/profile_pic/' . Auth::user()->image)); // Delete the old profile picture from the public/profile_pic directory
+            File::delete(public_path('/profile_pic/thumb/' . Auth::user()->image)); // Delete the old thumbnail profile picture from the public/profile_pic/thumb directory
 
-                return response()->json([
-                    'status' => true,
-                    'errors' => []
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'errors' => ['profile_pic' => ['No file uploaded.']]
-                ]);
-            }
+            User::where('id', $id)->update(['image' => $imageName]); // Update the user's profile picture in the database
+
+            session()->flash('success', 'Profile picture updated successfully!'); // Flash a success message to the session
+
+            return response()->json([
+                'status' => true,
+                'errors' => []
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'errors' => []
+            ]);
+
         } else {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
             ]);
         }
-        
+
     }
 
 }
