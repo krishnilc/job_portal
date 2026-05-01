@@ -61,10 +61,12 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="profilePicForm" name="profilePicForm" action="" method="POST" enctype="multipart/form-data">
+                        @csrf
                         <div class="mb-3">
                             <label for="exampleInputEmail1" class="form-label">Profile Image</label>
-                            <input type="file" class="form-control" id="image" name="image">
+                            <input type="file" class="form-control" id="profile_pic" name="profile_pic" required>
+                            <p class="text-danger" id="image-error"></p>
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary mx-3">Update</button>
@@ -92,6 +94,36 @@
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
+        });
+
+        $('#profilePicForm').submit(function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('account.updateProfilePic') }}",
+                data: formData,
+                dataType: 'json',               
+                contentType: false,
+                processData: false,
+
+                success: function(response) {
+                    if (response.status == false) {
+                        var errors = response.errors;
+
+                        if(errors.profile_pic) {
+                            $('#image-error').html(errors.profile_pic[0]);
+                        } 
+                    } else {
+                        // Success - hide modal and reload to show new image
+                        $('#exampleModal').modal('hide');
+                        location.reload();
+                    } 
+                },
+
+              
+            });
         });
     </script>
 

@@ -130,10 +130,54 @@ class AccountController extends Controller
             ]);
         }
     }
-
-    public function logout()
+        public function logout()
     {
         Auth::logout();
         return redirect()->route('account.login');
     }
+
+    public function updateProfilePic(Request $request)
+    {
+        
+        $id = Auth::user()->id;
+
+        $validator = Validator::make($request->all(), [
+            'profile_pic' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->passes()) {
+            $user = User::find($id);
+
+            // Handle file upload
+            if ($request->hasFile('profile_pic')) {
+                $file = $request->file('profile_pic');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $filePath = public_path('profile_pic/');
+                $file->move($filePath, $filename);
+
+                // Update user's profile picture path in the database
+                $user->profile_pic = 'profile_pic/' . $filename;
+                $user->save();
+
+                session()->flash('success', 'Profile picture updated successfully!');
+
+                return response()->json([
+                    'status' => true,
+                    'errors' => []
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'errors' => ['profile_pic' => ['No file uploaded.']]
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ]);
+        }
+        
+    }
+
 }
